@@ -24,7 +24,7 @@ export function Header() {
       <div className="space-y-1.5 my-3 text-white/70 text-sm">
         <div className="flex items-center justify-center space-x-2">
           <MapPin className="w-4 h-4" />
-          <span>{siteConfig.location || 'Planet Earth'}</span>
+          <span>{siteConfig.location || 'East London, UK'}</span>
         </div>
         <div className="flex items-center justify-center space-x-2">
           <User className="w-4 h-4" />
