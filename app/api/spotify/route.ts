@@ -20,7 +20,6 @@ async function getAccessToken() {
       grant_type: 'refresh_token',
       refresh_token: siteConfig.spotify.refreshToken,
     }),
-    // Tell Next.js not to cache this request
     cache: 'no-store',
   });
 
@@ -40,7 +39,6 @@ export async function GET() {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
-      // Tell Next.js not to cache this request
       cache: 'no-store',
     });
 
@@ -58,6 +56,7 @@ export async function GET() {
       return NextResponse.json({ isPlaying: false });
     }
 
+    // 1. Extract progress and duration from the Spotify response
     const track = {
       id: data.item.id,
       name: data.item.name,
@@ -66,7 +65,8 @@ export async function GET() {
       albumImageUrl: data.item.album.images[0]?.url || '',
       songUrl: data.item.external_urls.spotify,
       isPlaying: data.is_playing,
-      previewUrl: data.item.preview_url,
+      progress_ms: data.progress_ms,
+      duration_ms: data.item.duration_ms,
     };
 
     return NextResponse.json({

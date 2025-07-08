@@ -1,173 +1,101 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import useSWR from "swr";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Music, ExternalLink } from "lucide-react";
+import { Music } from "lucide-react";
 import { SpotifyResponse } from "@/types/spotify";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const REFRESH_INTERVAL_SECONDS = 10;
+
 export function SpotifyWidget() {
-  const [spotifyData, setSpotifyData] = useState<SpotifyResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: spotifyData, error } = useSWR<SpotifyResponse>('/api/spotify', fetcher, {
+    refreshInterval: REFRESH_INTERVAL_SECONDS * 1000,
+  });
 
-  const fetchSpotifyData = async () => {
-    try {
-      const response = await fetch('/api/spotify');
-      const data = await response.json();
-      setSpotifyData(data);
-    } catch (error) {
-      console.error('Failed to fetch Spotify data:', error);
-      setSpotifyData({ isPlaying: false, error: 'Failed to load' });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const isLoading = !spotifyData && !error;
 
-  useEffect(() => {
-    fetchSpotifyData();
-    const interval = setInterval(fetchSpotifyData, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  if (loading) {
-    return (
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="py-16 px-4"
-      >
-        <div className="max-w-2xl mx-auto">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-muted rounded-lg animate-pulse" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted rounded animate-pulse" />
-                  <div className="h-3 bg-muted rounded w-3/4 animate-pulse" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </motion.section>
-    );
-  }
-
-  if (spotifyData?.error || !spotifyData?.isPlaying) {
-    return (
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="py-16 px-4"
-      >
-        <div className="max-w-2xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: -10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-3xl font-bold mb-8 text-center"
-          >
-            Currently Playing
-          </motion.h2>
-          
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Music className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">
-                {spotifyData?.error ? 'Unable to load Spotify data' : 'Not currently playing anything'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </motion.section>
-    );
-  }
-
-  const { track } = spotifyData;
+  // 1. Calculate progress percentage
+  const track = spotifyData?.track;
+  const progressPercentage =
+    track && track.progress_ms && track.duration_ms
+      ? (track.progress_ms / track.duration_ms) * 100
+      : 0;
 
   return (
-    <motion.section
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-      viewport={{ once: true }}
-      className="py-16 px-4"
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+      className="w-full bg-black/20 backdrop-blur-lg rounded-2xl p-4 min-h-[88px] flex items-center justify-center"
     >
-      <div className="max-w-2xl mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, y: -10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-3xl font-bold mb-8 text-center bg-background/85 backdrop-blur-sm rounded-lg p-4 mx-auto max-w-fit"
-        >
-          Currently Playing
-        </motion.h2>
-        
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={track?.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Card className="overflow-hidden bg-background/85 backdrop-blur-sm border-background/20">
-              <CardContent className="p-0">
-                <div className="flex items-center">
-                  <div className="relative w-24 h-24 flex-shrink-0">
-                    <img
-                      src={track?.albumImageUrl}
-                      alt={`${track?.album} cover`}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/20" />
-                  </div>
-                  
-                  <div className="flex-1 p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-lg leading-tight mb-1 truncate">
-                          {track?.name}
-                        </h3>
-                        <p className="text-muted-foreground mb-2 truncate">
-                          by {track?.artist}
-                        </p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {track?.album}
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 ml-4">
-                        <Badge variant="secondary" className="animate-pulse">
-                          <Music className="w-3 h-3 mr-1" />
-                          Live
-                        </Badge>
-                        <motion.a
-                          href={track?.songUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <ExternalLink className="w-5 h-5" />
-                        </motion.a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      <AnimatePresence mode="wait">
+        {isLoading ? (
+          <motion.div key="loader" className="flex items-center space-x-3 w-full">
+            <div className="w-12 h-12 bg-white/10 rounded-md animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-3 bg-white/10 rounded animate-pulse w-3/4" />
+              <div className="h-3 bg-white/10 rounded animate-pulse w-1/2" />
+            </div>
           </motion.div>
-        </AnimatePresence>
-      </div>
-    </motion.section>
+        ) : error || !spotifyData?.isPlaying ? (
+          <motion.div key="not-playing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center space-x-2 text-white/50 text-sm">
+            <Music className="w-4 h-4" />
+            <p>Not Playing</p>
+          </motion.div>
+        ) : (
+          <motion.a 
+            key={spotifyData.track?.id} 
+            href={spotifyData.track?.songUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="flex items-center space-x-3 w-full"
+          >
+            <div className="w-12 h-12 relative flex-shrink-0">
+              <Image
+                src={spotifyData.track?.albumImageUrl || ''}
+                alt={spotifyData.track?.album || 'Album'}
+                fill
+                className="rounded-md object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-sm truncate text-white">{spotifyData.track?.name}</p>
+              <p className="text-xs truncate text-white/60">{spotifyData.track?.artist}</p>
+              
+                {/* 2. Render the progress bar */}
+                <div className="w-full bg-white/10 rounded-full h-1 mt-2 overflow-hidden">
+                <motion.div
+                  className="h-full bg-white rounded-full"
+                  // Animate the width from its current percentage
+                  initial={{ width: `${progressPercentage}%` }}
+                  animate={{ width: `${progressPercentage}%` }}
+                  // Transition smoothly over the refresh interval for a "live" feel
+                  transition={{ duration: REFRESH_INTERVAL_SECONDS, ease: 'linear' }}
+                />
+                </div>
+                {/* 3. Show current time and total duration */}
+                <div className="flex justify-between text-[10px] text-white/50 mt-1 font-mono tabular-nums">
+                <span>
+                  {track?.progress_ms !== undefined
+                  ? new Date(track.progress_ms).toISOString().substr(14, 5)
+                  : "0:00"}
+                </span>
+                <span>
+                  {track?.duration_ms !== undefined
+                  ? new Date(track.duration_ms).toISOString().substr(14, 5)
+                  : "0:00"}
+                </span>
+                </div>
+            </div>
+          </motion.a>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

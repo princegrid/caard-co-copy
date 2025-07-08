@@ -7,6 +7,9 @@ export interface SpotifyTrack {
   songUrl: string;
   isPlaying: boolean;
   previewUrl?: string;
+  // 1. Add progress and duration properties
+  progress_ms?: number;
+  duration_ms?: number;
 }
 
 export interface SpotifyResponse {
