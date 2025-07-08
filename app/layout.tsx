@@ -7,10 +7,10 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Grid - Creative Developer',
-  description: 'Creative developer building delightful digital experiences',
-  keywords: ['developer', 'creative', 'web development', 'design'],
-  authors: [{ name: 'Grid' }],
+  title: 'princegrid',
+  description: 'princegrid',
+  keywords: ['developer', 'web development', 'gaming', 'music', 'novels'],
+  authors: [{ name: 'grid' }],
   viewport: 'width=device-width, initial-scale=1',
   icons: {
     icon: '/favicon.ico',
