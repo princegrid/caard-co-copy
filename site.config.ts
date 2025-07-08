@@ -7,7 +7,6 @@ export interface BioItem {
   description: string;
 }
 
-
 export interface SiteConfig {
   name: string;
   tagline?: string;
