@@ -4,6 +4,7 @@ import { siteConfig } from '@/site.config';
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const SPOTIFY_NOW_PLAYING_URL = 'https://api.spotify.com/v1/me/player/currently-playing';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 async function getAccessToken() {
   if (!siteConfig.spotify.clientId || !siteConfig.spotify.clientSecret || !siteConfig.spotify.refreshToken) {
