@@ -15,6 +15,14 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  openGraph: {
+    images: [
+      {
+        url: '/metadata.jpg',
+        alt: 'princegrid',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
